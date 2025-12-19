@@ -43,10 +43,12 @@ export async function POST(request: NextRequest) {
     const quantity = validatedData.quantity
 
     switch (validatedData.type) {
-      case 'IN':
+      case 'PURCHASE':
+      case 'RETURN':
         newStock += Math.abs(quantity)
         break
-      case 'OUT':
+      case 'USAGE':
+      case 'WASTE':
         newStock -= Math.abs(quantity)
         break
       case 'ADJUSTMENT':

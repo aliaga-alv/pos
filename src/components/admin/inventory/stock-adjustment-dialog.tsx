@@ -59,7 +59,7 @@ export default function StockAdjustmentDialog({ ingredient }: StockAdjustmentDia
     resolver: zodResolver(stockTransactionSchema),
     defaultValues: {
       ingredientId: ingredient.id,
-      type: 'IN',
+      type: 'PURCHASE',
       quantity: 0,
       notes: '',
     },
@@ -107,9 +107,11 @@ export default function StockAdjustmentDialog({ ingredient }: StockAdjustmentDia
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="IN">Stock In (Add)</SelectItem>
-                      <SelectItem value="OUT">Stock Out (Remove)</SelectItem>
-                      <SelectItem value="ADJUSTMENT">Adjustment (Set exact)</SelectItem>
+                      <SelectItem value="PURCHASE">Purchase (Add Stock)</SelectItem>
+                      <SelectItem value="USAGE">Usage (Remove Stock)</SelectItem>
+                      <SelectItem value="WASTE">Waste (Remove Stock)</SelectItem>
+                      <SelectItem value="RETURN">Return (Add Stock)</SelectItem>
+                      <SelectItem value="ADJUSTMENT">Adjustment (Set Exact)</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -135,8 +137,8 @@ export default function StockAdjustmentDialog({ ingredient }: StockAdjustmentDia
                     />
                   </FormControl>
                   <FormDescription>
-                    {transactionType === 'IN' && `Add to current stock (${Number(ingredient.currentStock).toFixed(2)} ${UNIT_LABELS[ingredient.unit]})`}
-                    {transactionType === 'OUT' && `Remove from current stock (${Number(ingredient.currentStock).toFixed(2)} ${UNIT_LABELS[ingredient.unit]})`}
+                    {(transactionType === 'PURCHASE' || transactionType === 'RETURN') && `Add to current stock (${Number(ingredient.currentStock).toFixed(2)} ${UNIT_LABELS[ingredient.unit]})`}
+                    {(transactionType === 'USAGE' || transactionType === 'WASTE') && `Remove from current stock (${Number(ingredient.currentStock).toFixed(2)} ${UNIT_LABELS[ingredient.unit]})`}
                     {transactionType === 'ADJUSTMENT' && `Set stock to this exact value`}
                   </FormDescription>
                   <FormMessage />

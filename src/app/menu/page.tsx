@@ -1,5 +1,19 @@
+import { Suspense } from 'react'
 import { MenuGrid } from '@/components/menu/menu-grid'
 import { CategoryFilter } from '@/components/menu/category-filter'
+import { Skeleton } from '@/components/ui/skeleton'
+
+function MenuContent() {
+  return (
+    <>
+      {/* Category Filter */}
+      <CategoryFilter />
+
+      {/* Products Grid */}
+      <MenuGrid />
+    </>
+  )
+}
 
 export default function MenuPage() {
   return (
@@ -12,11 +26,26 @@ export default function MenuPage() {
         </p>
       </div>
 
-      {/* Category Filter */}
-      <CategoryFilter />
+      <Suspense fallback={<MenuSkeleton />}>
+        <MenuContent />
+      </Suspense>
+    </div>
+  )
+}
 
-      {/* Products Grid */}
-      <MenuGrid />
+function MenuSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="flex gap-2 overflow-x-auto pb-2">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <Skeleton key={i} className="h-10 w-24 shrink-0" />
+        ))}
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <Skeleton key={i} className="h-80" />
+        ))}
+      </div>
     </div>
   )
 }

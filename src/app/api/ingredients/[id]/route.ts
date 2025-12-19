@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/server'
 // GET /api/ingredients/[id] - Get single ingredient
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient()
@@ -16,10 +16,11 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await params
     const ingredient = await prisma.ingredient.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
-        productIngredients: {
+        products: {
           include: {
             product: {
               select: {
@@ -41,7 +42,8 @@ export async function GET(
 
     return NextResponse.json(ingredient)
   } catch (error) {
-    console.error(`GET /api/ingredients/${params.id} error:`, error)
+    const { id } = await params
+    console.error(`GET /api/ingredients/${id} error:`, error)
     return NextResponse.json(
       { error: 'Failed to fetch ingredient' },
       { status: 500 }
@@ -52,7 +54,7 @@ export async function GET(
 // PUT /api/ingredients/[id] - Update ingredient
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient()
@@ -72,17 +74,19 @@ export async function PUT(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
+    const { id } = await params
     const body = await request.json()
     const validatedData = ingredientSchema.parse(body)
 
     const ingredient = await prisma.ingredient.update({
-      where: { id: params.id },
+      where: { id },
       data: validatedData,
     })
 
     return NextResponse.json(ingredient)
   } catch (error) {
-    console.error(`PUT /api/ingredients/${params.id} error:`, error)
+    const { id } = await params
+    console.error(`PUT /api/ingredients/${id} error:`, error)
 
     if (error instanceof Error && error.name === 'ZodError') {
       return NextResponse.json(
@@ -108,7 +112,7 @@ export async function PUT(
 // DELETE /api/ingredients/[id] - Delete ingredient
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient()
@@ -128,9 +132,10 @@ export async function DELETE(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
+    const { id } = await params
     // Check if ingredient is used in any products
     const productsUsing = await prisma.productIngredient.count({
-      where: { ingredientId: params.id },
+      where: { ingredientId: id },
     })
 
     if (productsUsing > 0) {
@@ -143,12 +148,13 @@ export async function DELETE(
     }
 
     await prisma.ingredient.delete({
-      where: { id: params.id },
+      where: { id },
     })
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error(`DELETE /api/ingredients/${params.id} error:`, error)
+    const { id } = await params
+    console.error(`DELETE /api/ingredients/${id} error:`, error)
 
     if ((error as any).code === 'P2025') {
       return NextResponse.json(

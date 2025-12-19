@@ -17,7 +17,7 @@ export interface StockTransaction {
 
 export interface StockTransactionInput {
   ingredientId: string
-  type: 'IN' | 'OUT' | 'ADJUSTMENT'
+  type: 'PURCHASE' | 'USAGE' | 'WASTE' | 'ADJUSTMENT' | 'RETURN'
   quantity: number
   notes?: string
 }
