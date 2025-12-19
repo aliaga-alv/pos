@@ -186,7 +186,7 @@ export default function EditIngredientPage({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Unit of Measurement</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select a unit" />
@@ -241,8 +241,13 @@ export default function EditIngredientPage({
                             type="number"
                             step="0.01"
                             placeholder="0.00"
-                            {...field}
-                            onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                            value={field.value ?? ''}
+                            onChange={(e) => field.onChange(e.target.value === '' ? '' : parseFloat(e.target.value))}
+                            onBlur={(e) => {
+                              field.onChange(e.target.value === '' ? 0 : parseFloat(e.target.value))
+                              field.onBlur()
+                            }}
+                            name={field.name}
                           />
                         </FormControl>
                         <FormDescription>
@@ -265,8 +270,13 @@ export default function EditIngredientPage({
                           type="number"
                           step="0.01"
                           placeholder="0.00"
-                          {...field}
-                          onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                          value={field.value ?? ''}
+                          onChange={(e) => field.onChange(e.target.value === '' ? '' : parseFloat(e.target.value))}
+                          onBlur={(e) => {
+                            field.onChange(e.target.value === '' ? 0 : parseFloat(e.target.value))
+                            field.onBlur()
+                          }}
+                          name={field.name}
                         />
                       </FormControl>
                       <FormDescription>

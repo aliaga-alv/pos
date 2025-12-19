@@ -111,6 +111,7 @@ export async function GET() {
         ingredient: t.ingredient.name,
         quantity: Number(t.quantity),
         unit: t.ingredient.unit,
+        totalCost: t.totalCost ? Number(t.totalCost) : null,
         notes: t.notes,
         user: t.user?.name || 'System',
         createdAt: t.createdAt,

@@ -135,8 +135,13 @@ export default function NewIngredientPage() {
                           type="number"
                           step="0.01"
                           placeholder="0.00"
-                          {...field}
-                          onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                          value={field.value ?? ''}
+                          onChange={(e) => field.onChange(e.target.value === '' ? '' : parseFloat(e.target.value))}
+                          onBlur={(e) => {
+                            field.onChange(e.target.value === '' ? 0 : parseFloat(e.target.value))
+                            field.onBlur()
+                          }}
+                          name={field.name}
                         />
                       </FormControl>
                       <FormDescription>
@@ -158,8 +163,13 @@ export default function NewIngredientPage() {
                           type="number"
                           step="0.01"
                           placeholder="0.00"
-                          {...field}
-                          onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                          value={field.value ?? ''}
+                          onChange={(e) => field.onChange(e.target.value === '' ? '' : parseFloat(e.target.value))}
+                          onBlur={(e) => {
+                            field.onChange(e.target.value === '' ? 0 : parseFloat(e.target.value))
+                            field.onBlur()
+                          }}
+                          name={field.name}
                         />
                       </FormControl>
                       <FormDescription>
@@ -182,8 +192,13 @@ export default function NewIngredientPage() {
                         type="number"
                         step="0.01"
                         placeholder="0.00"
-                        {...field}
-                        onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                        value={field.value ?? ''}
+                        onChange={(e) => field.onChange(e.target.value === '' ? '' : parseFloat(e.target.value))}
+                        onBlur={(e) => {
+                          field.onChange(e.target.value === '' ? 0 : parseFloat(e.target.value))
+                          field.onBlur()
+                        }}
+                        name={field.name}
                       />
                     </FormControl>
                     <FormDescription>

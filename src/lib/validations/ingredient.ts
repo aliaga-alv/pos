@@ -14,6 +14,7 @@ export const stockTransactionSchema = z.object({
   quantity: z.number().refine((val) => val !== 0, {
     message: 'Quantity cannot be zero',
   }),
+  totalCost: z.number().min(0, 'Cost cannot be negative').optional(),
   notes: z.string().max(500).optional(),
 })
 

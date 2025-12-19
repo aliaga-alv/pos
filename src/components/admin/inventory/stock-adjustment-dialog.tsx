@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import * as React from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useCreateStockTransaction } from '@/hooks/use-stock'
@@ -48,6 +49,7 @@ interface StockAdjustmentDialogProps {
     name: string
     unit: keyof typeof UNIT_LABELS
     currentStock: number
+    costPerUnit: number
   }
 }
 
@@ -75,6 +77,15 @@ export default function StockAdjustmentDialog({ ingredient }: StockAdjustmentDia
   }
 
   const transactionType = form.watch('type')
+  const quantity = form.watch('quantity')
+
+  // Auto-calculate total cost when quantity changes for PURCHASE transactions
+  React.useEffect(() => {
+    if (transactionType === 'PURCHASE' && quantity) {
+      const calculatedCost = quantity * Number(ingredient.costPerUnit)
+      form.setValue('totalCost', calculatedCost)
+    }
+  }, [quantity, transactionType, ingredient.costPerUnit, form])
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -132,8 +143,13 @@ export default function StockAdjustmentDialog({ ingredient }: StockAdjustmentDia
                       type="number"
                       step="0.01"
                       placeholder="0.00"
-                      {...field}
-                      onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                      value={field.value ?? ''}
+                      onChange={(e) => field.onChange(e.target.value === '' ? '' : parseFloat(e.target.value))}
+                      onBlur={(e) => {
+                        field.onChange(e.target.value === '' ? 0 : parseFloat(e.target.value))
+                        field.onBlur()
+                      }}
+                      name={field.name}
                     />
                   </FormControl>
                   <FormDescription>
@@ -145,6 +161,36 @@ export default function StockAdjustmentDialog({ ingredient }: StockAdjustmentDia
                 </FormItem>
               )}
             />
+
+            {transactionType === 'PURCHASE' && (
+              <FormField
+                control={form.control}
+                name="totalCost"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Total Cost ($)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        placeholder="0.00"
+                        value={field.value ?? ''}
+                        onChange={(e) => field.onChange(e.target.value === '' ? '' : parseFloat(e.target.value))}
+                        onBlur={(e) => {
+                          field.onChange(e.target.value === '' ? undefined : parseFloat(e.target.value))
+                          field.onBlur()
+                        }}
+                        name={field.name}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Auto-calculated: {quantity || 0} × ${Number(ingredient.costPerUnit).toFixed(2)} (editable)
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             <FormField
               control={form.control}

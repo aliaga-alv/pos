@@ -69,6 +69,7 @@ export async function POST(request: NextRequest) {
         data: {
           ...validatedData,
           quantity: validatedData.type === 'ADJUSTMENT' ? quantity : Math.abs(quantity),
+          totalCost: validatedData.totalCost,
         },
       }),
       prisma.ingredient.update({

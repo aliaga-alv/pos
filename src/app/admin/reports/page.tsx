@@ -15,8 +15,9 @@ import {
   useSalesReport,
   usePopularItemsReport,
   useInventoryReport,
+  useFinancialReport,
 } from '@/hooks/use-reports'
-import { Download, TrendingUp, Package, DollarSign, ShoppingCart } from 'lucide-react'
+import { Download, TrendingUp, Package, DollarSign, ShoppingCart, Wallet } from 'lucide-react'
 import {
   Table,
   TableBody,
@@ -34,6 +35,7 @@ export default function ReportsPage() {
   const { data: salesData, isLoading: salesLoading } = useSalesReport({ period })
   const { data: popularData, isLoading: popularLoading } = usePopularItemsReport()
   const { data: inventoryData, isLoading: inventoryLoading } = useInventoryReport()
+  const { data: financialData, isLoading: financialLoading } = useFinancialReport({ period })
 
   const exportToCSV = (data: any[], filename: string) => {
     if (!data || data.length === 0) return
@@ -71,6 +73,7 @@ export default function ReportsPage() {
           <TabsTrigger value="sales">Sales</TabsTrigger>
           <TabsTrigger value="popular">Popular Items</TabsTrigger>
           <TabsTrigger value="inventory">Inventory</TabsTrigger>
+          <TabsTrigger value="financial">Financial</TabsTrigger>
         </TabsList>
 
         {/* Sales Report */}
@@ -485,6 +488,195 @@ export default function ReportsPage() {
                   </Table>
                 </CardContent>
               </Card>
+            </>
+          )}
+        </TabsContent>
+
+        {/* Financial Report */}
+        <TabsContent value="financial" className="space-y-4">
+          <div className="flex items-center justify-between">
+            <Select value={period} onValueChange={setPeriod}>
+              <SelectTrigger className="w-45">
+                <SelectValue placeholder="Select period" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="daily">Today</SelectItem>
+                <SelectItem value="weekly">Last 7 Days</SelectItem>
+                <SelectItem value="monthly">Last 30 Days</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                financialData?.dailyBreakdown &&
+                exportToCSV(financialData.dailyBreakdown, 'financial-report')
+              }
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Export CSV
+            </Button>
+          </div>
+
+          {financialLoading ? (
+            <div className="text-center py-8 text-muted-foreground">
+              Loading financial data...
+            </div>
+          ) : (
+            <>
+              <div className="grid gap-4 md:grid-cols-4">
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">
+                      Total Revenue
+                    </CardTitle>
+                    <TrendingUp className="h-4 w-4 text-green-600" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-green-600">
+                      ${financialData?.summary.totalRevenue.toFixed(2) || '0.00'}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {financialData?.summary.totalOrders || 0} orders
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">
+                      Total Expenses
+                    </CardTitle>
+                    <Package className="h-4 w-4 text-red-600" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-red-600">
+                      ${financialData?.summary.totalExpenses.toFixed(2) || '0.00'}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {financialData?.summary.totalPurchases || 0} purchases
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">
+                      Gross Profit
+                    </CardTitle>
+                    <DollarSign className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className={`text-2xl font-bold ${
+                      (financialData?.summary.grossProfit || 0) >= 0
+                        ? 'text-green-600'
+                        : 'text-red-600'
+                    }`}>
+                      ${financialData?.summary.grossProfit.toFixed(2) || '0.00'}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Revenue - Expenses
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">
+                      Profit Margin
+                    </CardTitle>
+                    <Wallet className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className={`text-2xl font-bold ${
+                      (financialData?.summary.profitMargin || 0) >= 0
+                        ? 'text-green-600'
+                        : 'text-red-600'
+                    }`}>
+                      {financialData?.summary.profitMargin.toFixed(1) || '0.0'}%
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Profit / Revenue
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Daily Financial Breakdown</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Date</TableHead>
+                        <TableHead className="text-right">Revenue</TableHead>
+                        <TableHead className="text-right">Expenses</TableHead>
+                        <TableHead className="text-right">Profit</TableHead>
+                        <TableHead className="text-right">Orders</TableHead>
+                        <TableHead className="text-right">Purchases</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {financialData?.dailyBreakdown.map((day) => (
+                        <TableRow key={day.date}>
+                          <TableCell className="font-medium">
+                            {new Date(day.date).toLocaleDateString()}
+                          </TableCell>
+                          <TableCell className="text-right text-green-600">
+                            ${day.revenue.toFixed(2)}
+                          </TableCell>
+                          <TableCell className="text-right text-red-600">
+                            ${day.expenses.toFixed(2)}
+                          </TableCell>
+                          <TableCell className={`text-right font-medium ${
+                            day.profit >= 0 ? 'text-green-600' : 'text-red-600'
+                          }`}>
+                            ${day.profit.toFixed(2)}
+                          </TableCell>
+                          <TableCell className="text-right">{day.orders}</TableCell>
+                          <TableCell className="text-right">{day.purchases}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+
+              {financialData?.topExpenses && financialData.topExpenses.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Top Expenses</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Ingredient</TableHead>
+                          <TableHead className="text-right">Amount</TableHead>
+                          <TableHead className="text-right">Date</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {financialData.topExpenses.map((expense, idx) => (
+                          <TableRow key={idx}>
+                            <TableCell className="font-medium">
+                              {expense.ingredient}
+                            </TableCell>
+                            <TableCell className="text-right text-red-600">
+                              ${expense.amount.toFixed(2)}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {new Date(expense.date).toLocaleDateString()}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
+              )}
             </>
           )}
         </TabsContent>

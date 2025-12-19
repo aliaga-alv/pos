@@ -73,6 +73,7 @@ interface InventoryReport {
     ingredient: string
     quantity: number
     unit: string
+    totalCost: number | null
     notes: string | null
     user: string
     createdAt: Date
@@ -123,6 +124,55 @@ export function useInventoryReport() {
     queryFn: async () => {
       const res = await fetch('/api/reports/inventory')
       if (!res.ok) throw new Error('Failed to fetch inventory report')
+      return res.json()
+    },
+  })
+}
+
+interface FinancialReport {
+  period: string
+  startDate: Date
+  endDate: Date
+  summary: {
+    totalRevenue: number
+    totalExpenses: number
+    grossProfit: number
+    profitMargin: number
+    totalOrders: number
+    totalPurchases: number
+    averageOrderValue: number
+    averagePurchaseValue: number
+  }
+  dailyBreakdown: Array<{
+    date: string
+    revenue: number
+    expenses: number
+    profit: number
+    orders: number
+    purchases: number
+  }>
+  expenseBreakdown: Record<string, number>
+  topExpenses: Array<{
+    ingredient: string
+    amount: number
+    date: Date
+  }>
+}
+
+export function useFinancialReport(params: {
+  period?: string
+  startDate?: string
+  endDate?: string
+}) {
+  const queryString = new URLSearchParams(
+    params as Record<string, string>
+  ).toString()
+
+  return useQuery<FinancialReport>({
+    queryKey: ['reports', 'financial', params],
+    queryFn: async () => {
+      const res = await fetch(`/api/reports/financial?${queryString}`)
+      if (!res.ok) throw new Error('Failed to fetch financial report')
       return res.json()
     },
   })
