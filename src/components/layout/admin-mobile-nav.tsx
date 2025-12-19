@@ -69,6 +69,12 @@ export function AdminMobileNav({ role }: AdminMobileNavProps) {
             Tables
           </button>
           <button
+            onClick={() => handleNavClick('/admin/qr-codes')}
+            className="px-3 py-2.5 text-sm hover:bg-slate-100 rounded-md text-left"
+          >
+            QR Codes
+          </button>
+          <button
             onClick={() => handleNavClick('/admin/users')}
             className="px-3 py-2.5 text-sm hover:bg-slate-100 rounded-md text-left"
           >

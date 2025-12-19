@@ -40,6 +40,12 @@ export function AdminNavLinks({ role }: AdminNavLinksProps) {
         Tables
       </a>
       <a
+        href="/admin/qr-codes"
+        className="px-3 py-2 text-sm hover:bg-slate-100 rounded-md"
+      >
+        QR Codes
+      </a>
+      <a
         href="/admin/users"
         className="px-3 py-2 text-sm hover:bg-slate-100 rounded-md"
       >

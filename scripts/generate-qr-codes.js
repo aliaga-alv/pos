@@ -13,9 +13,23 @@
  * 2. Run: tsx scripts/generate-qr-codes.ts
  */
 
+require('dotenv').config({ path: '.env.local' })
 const QRCode = require('qrcode')
 const fs = require('fs')
 const path = require('path')
+const { PrismaClient } = require('@prisma/client')
+const { PrismaPg } = require('@prisma/adapter-pg')
+const { Pool } = require('pg')
+
+const connectionString = process.env.DATABASE_URL
+
+if (!connectionString) {
+  throw new Error('DATABASE_URL environment variable is not set')
+}
+
+const pool = new Pool({ connectionString })
+const adapter = new PrismaPg(pool)
+const prisma = new PrismaClient({ adapter })
 
 // Configuration
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
@@ -57,36 +71,43 @@ async function generateAllQRCodes() {
   console.log('\n=== QR Code Generator for Restaurant Tables ===\n')
   console.log(`Base URL: ${BASE_URL}`)
   console.log(`Output Directory: ${QR_OUTPUT_DIR}`)
-  console.log(`Generating QR codes for ${NUM_TABLES} tables...\n`)
+  console.log(`Fetching tables from database...\n`)
 
-  // Note: You'll need to fetch actual table IDs from your database
-  // For now, we'll use placeholder IDs
-  // In production, replace this with actual database query
+  try {
+    // Fetch actual tables from database
+    const tables = await prisma.table.findMany({
+      orderBy: { number: 'asc' },
+    })
 
-  const tables = Array.from({ length: NUM_TABLES }, (_, i) => ({
-    number: i + 1,
-    id: `table-${i + 1}`, // Replace with actual table IDs from database
-  }))
-
-  const results = []
-
-  for (const table of tables) {
-    const result = await generateQRCode(table.number, table.id)
-    if (result) {
-      results.push(result)
+    if (tables.length === 0) {
+      console.log('No tables found in database. Please create tables first.')
+      return
     }
-  }
 
-  console.log(`\n=== Summary ===`)
-  console.log(`Successfully generated ${results.length} QR codes`)
-  console.log(`Location: ${QR_OUTPUT_DIR}`)
-  console.log(`\nTo use these QR codes:`)
-  console.log(`1. Print the QR codes`)
-  console.log(`2. Place them on corresponding tables`)
-  console.log(`3. Customers scan to access the menu`)
-  console.log(
-    `\nNote: Update the table IDs in this script with actual IDs from your database.`
-  )
+    console.log(`Found ${tables.length} tables in database`)
+    console.log(`Generating QR codes...\n`)
+
+    const results = []
+
+    for (const table of tables) {
+      const result = await generateQRCode(table.number, table.id)
+      if (result) {
+        results.push(result)
+      }
+    }
+
+    console.log(`\n=== Summary ===`)
+    console.log(`Successfully generated ${results.length} QR codes`)
+    console.log(`Location: ${QR_OUTPUT_DIR}`)
+    console.log(`\nTo use these QR codes:`)
+    console.log(`1. Print the QR codes`)
+    console.log(`2. Place them on corresponding tables`)
+    console.log(`3. Customers scan to access the menu`)
+  } catch (error) {
+    console.error('Error generating QR codes:', error)
+  } finally {
+    await prisma.$disconnect()
+  }
 }
 
 // Run the generator
